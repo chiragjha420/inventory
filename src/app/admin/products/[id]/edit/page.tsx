@@ -14,7 +14,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
-  const [unitType, setUnitType] = useState<'kg' | 'pieces' | 'box' | 'bag'>('pieces');
+  const [unitType, setUnitType] = useState<'kg' | 'pieces' | 'box' | 'bag' | 'bundle' | 'set'>('pieces');
   const [lowStockThreshold, setLowStockThreshold] = useState('');
   const [existingImagePath, setExistingImagePath] = useState<string | null>(null);
   
@@ -315,6 +315,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 <option value="kg">kg (Kilogram)</option>
                 <option value="box">Box</option>
                 <option value="bag">Bag</option>
+                <option value="bundle">Bundle</option>
+                <option value="set">Set</option>
               </select>
             </div>
 

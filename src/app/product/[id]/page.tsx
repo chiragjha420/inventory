@@ -12,7 +12,7 @@ interface Product {
   name: string;
   category: string | null;
   image_url: string | null;
-  unit_type: 'kg' | 'pieces' | 'box' | 'bag';
+  unit_type: 'kg' | 'pieces' | 'box' | 'bag' | 'bundle' | 'set';
   current_quantity: number;
 }
 
