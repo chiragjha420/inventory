@@ -21,7 +21,7 @@ create table if not exists products (
 create table if not exists sales (
   id uuid primary key default gen_random_uuid(),
   sent_to text not null,
-  received_by text not null,
+  sent_by text not null,
   sold_by text not null,
   sale_date date not null default current_date,
   created_at timestamp with time zone default now() not null
@@ -109,7 +109,7 @@ create policy "Allow authenticated users to upload to product-images" on storage
 -- Log Sale Function
 create or replace function log_sale(
   p_sent_to text,
-  p_received_by text,
+  p_sent_by text,
   p_sold_by text,
   p_sale_date date,
   p_items jsonb -- array of {product_id, quantity}
@@ -123,8 +123,8 @@ declare
   v_unit_type text;
 begin
   -- Insert the parent sale record
-  insert into sales (sent_to, received_by, sold_by, sale_date)
-  values (p_sent_to, p_received_by, p_sold_by, p_sale_date)
+  insert into sales (sent_to, sent_by, sold_by, sale_date)
+  values (p_sent_to, p_sent_by, p_sold_by, p_sale_date)
   returning id into v_sale_id;
 
   -- Loop through each item in the sale

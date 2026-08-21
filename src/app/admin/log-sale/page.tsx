@@ -42,7 +42,7 @@ function LogSaleContent() {
 
   // Form Metadata
   const [sentTo, setSentTo] = useState('');
-  const [receivedBy, setReceivedBy] = useState('');
+  const [sentBy, setSentBy] = useState('');
   const [soldBy, setSoldBy] = useState('');
   const [saleDate, setSaleDate] = useState(() => {
     const today = new Date();
@@ -154,8 +154,8 @@ function LogSaleContent() {
       toast.error('"Sent To" customer/destination name is required');
       return false;
     }
-    if (!receivedBy.trim()) {
-      toast.error('"Received By" receiver name is required');
+    if (!sentBy.trim()) {
+      toast.error('"Sent By" sender/dispatcher name is required');
       return false;
     }
     if (!soldBy.trim()) {
@@ -189,7 +189,7 @@ function LogSaleContent() {
 
     setSaving(true);
     try {
-      // Structure the payload for the RPC function log_sale(p_sent_to, p_received_by, p_sold_by, p_sale_date, p_items)
+      // Structure the payload for the RPC function log_sale(p_sent_to, p_sent_by, p_sold_by, p_sale_date, p_items)
       const saleItemsPayload = selectedItems.map((item) => ({
         product_id: item.product.id,
         quantity: item.quantity,
@@ -197,7 +197,7 @@ function LogSaleContent() {
 
       const { data: saleId, error } = await supabase.rpc('log_sale', {
         p_sent_to: sentTo.trim(),
-        p_received_by: receivedBy.trim(),
+        p_sent_by: sentBy.trim(),
         p_sold_by: soldBy.trim(),
         p_sale_date: saleDate,
         p_items: saleItemsPayload,
@@ -219,7 +219,7 @@ function LogSaleContent() {
       // Reset form
       setSelectedItems([]);
       setSentTo('');
-      setReceivedBy('');
+      setSentBy('');
       setSoldBy('');
       
       router.refresh();
@@ -276,17 +276,17 @@ function LogSaleContent() {
             </div>
 
             <div>
-              <label htmlFor="received-by" className="block text-sm font-bold text-neutral-700">
-                Received By *
+              <label htmlFor="sent-by" className="block text-sm font-bold text-neutral-700">
+                Sent By *
               </label>
               <input
                 type="text"
-                id="received-by"
+                id="sent-by"
                 required
-                value={receivedBy}
-                onChange={(e) => setReceivedBy(e.target.value)}
+                value={sentBy}
+                onChange={(e) => setSentBy(e.target.value)}
                 className="mt-1.5 block w-full border border-neutral-300 rounded-lg p-3 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900 text-base"
-                placeholder="Receiver's name"
+                placeholder="Sender's name"
               />
             </div>
 
