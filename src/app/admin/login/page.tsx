@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
 import { Lock, Mail, Loader2 } from 'lucide-react';
@@ -84,9 +85,16 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
+                  Password
+                </label>
+                <div className="text-sm">
+                  <Link href="/admin/forgot-password" className="font-semibold text-neutral-600 hover:text-neutral-900 transition-colors">
+                    Forgot password?
+                  </Link>
+                </div>
+              </div>
               <div className="mt-2 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-neutral-400" aria-hidden="true" />

@@ -32,9 +32,12 @@ export async function middleware(request: NextRequest) {
 
   const isRoutingToAdmin = request.nextUrl.pathname.startsWith('/admin');
   const isRoutingToLogin = request.nextUrl.pathname === '/admin/login';
+  const isRoutingToForgot = request.nextUrl.pathname === '/admin/forgot-password';
+  const isRoutingToReset = request.nextUrl.pathname === '/admin/reset-password';
+  const isBypassRoute = isRoutingToLogin || isRoutingToForgot || isRoutingToReset;
 
   if (isRoutingToAdmin) {
-    if (!user && !isRoutingToLogin) {
+    if (!user && !isBypassRoute) {
       const url = request.nextUrl.clone();
       url.pathname = '/admin/login';
       return NextResponse.redirect(url);

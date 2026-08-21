@@ -21,7 +21,8 @@ interface SaleItemWithSale {
   quantity_sold: number;
   unit_type_at_sale: string;
   sales: {
-    sold_to: string;
+    sent_to: string;
+    received_by: string;
     sold_by: string;
     sale_date: string;
   };
@@ -57,7 +58,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             quantity_sold,
             unit_type_at_sale,
             sales (
-              sold_to,
+              sent_to,
+              received_by,
               sold_by,
               sale_date
             )
@@ -207,10 +209,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       Date
                     </th>
                     <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">
-                      Sold To
+                      Sent To
                     </th>
                     <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">
-                      Sold By
+                      Received By
+                    </th>
+                    <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                      Sold By (Salesperson)
                     </th>
                     <th scope="col" className="px-6 py-3.5 text-right text-xs font-bold text-neutral-500 uppercase tracking-wider">
                       Quantity Sold
@@ -228,7 +233,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         }) : 'N/A'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-600">
-                        {item.sales?.sold_to || 'N/A'}
+                        {item.sales?.sent_to || 'N/A'}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-600">
+                        {item.sales?.received_by || 'N/A'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-600">
                         {item.sales?.sold_by || 'N/A'}
@@ -259,14 +267,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       {item.quantity_sold} <span className="text-xs font-semibold text-neutral-500">{item.unit_type_at_sale}</span>
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-neutral-500">
+                  <div className="space-y-1.5 text-xs text-neutral-500">
                     <div className="flex items-center gap-1">
                       <User className="h-3.5 w-3.5 text-neutral-400" />
-                      <span>To: <strong>{item.sales?.sold_to || 'N/A'}</strong></span>
+                      <span>Sent To: <strong>{item.sales?.sent_to || 'N/A'}</strong></span>
                     </div>
                     <div className="flex items-center gap-1">
                       <User className="h-3.5 w-3.5 text-neutral-400" />
-                      <span>By: <strong>{item.sales?.sold_by || 'N/A'}</strong></span>
+                      <span>Received By: <strong>{item.sales?.received_by || 'N/A'}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <User className="h-3.5 w-3.5 text-neutral-400" />
+                      <span>Sold By (Sales): <strong>{item.sales?.sold_by || 'N/A'}</strong></span>
                     </div>
                   </div>
                 </div>

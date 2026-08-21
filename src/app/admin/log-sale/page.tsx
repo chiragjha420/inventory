@@ -41,7 +41,8 @@ function LogSaleContent() {
   const pickerRef = useRef<HTMLDivElement>(null);
 
   // Form Metadata
-  const [soldTo, setSoldTo] = useState('');
+  const [sentTo, setSentTo] = useState('');
+  const [receivedBy, setReceivedBy] = useState('');
   const [soldBy, setSoldBy] = useState('');
   const [saleDate, setSaleDate] = useState(() => {
     const today = new Date();
@@ -149,8 +150,12 @@ function LogSaleContent() {
 
   // Perform checks
   const validateForm = () => {
-    if (!soldTo.trim()) {
-      toast.error('"Sold To" customer name is required');
+    if (!sentTo.trim()) {
+      toast.error('"Sent To" customer/destination name is required');
+      return false;
+    }
+    if (!receivedBy.trim()) {
+      toast.error('"Received By" receiver name is required');
       return false;
     }
     if (!soldBy.trim()) {
@@ -184,14 +189,15 @@ function LogSaleContent() {
 
     setSaving(true);
     try {
-      // Structure the payload for the RPC function log_sale(p_sold_to, p_sold_by, p_sale_date, p_items)
+      // Structure the payload for the RPC function log_sale(p_sent_to, p_received_by, p_sold_by, p_sale_date, p_items)
       const saleItemsPayload = selectedItems.map((item) => ({
         product_id: item.product.id,
         quantity: item.quantity,
       }));
 
       const { data: saleId, error } = await supabase.rpc('log_sale', {
-        p_sold_to: soldTo.trim(),
+        p_sent_to: sentTo.trim(),
+        p_received_by: receivedBy.trim(),
         p_sold_by: soldBy.trim(),
         p_sale_date: saleDate,
         p_items: saleItemsPayload,
@@ -212,7 +218,8 @@ function LogSaleContent() {
       
       // Reset form
       setSelectedItems([]);
-      setSoldTo('');
+      setSentTo('');
+      setReceivedBy('');
       setSoldBy('');
       
       router.refresh();
@@ -252,19 +259,34 @@ function LogSaleContent() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Sale details header */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-neutral-100 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 border-b border-neutral-100 pb-6">
             <div>
               <label htmlFor="sale-to" className="block text-sm font-bold text-neutral-700">
-                Sold To (Customer) *
+                Sent To (Customer) *
               </label>
               <input
                 type="text"
                 id="sale-to"
                 required
-                value={soldTo}
-                onChange={(e) => setSoldTo(e.target.value)}
+                value={sentTo}
+                onChange={(e) => setSentTo(e.target.value)}
                 className="mt-1.5 block w-full border border-neutral-300 rounded-lg p-3 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900 text-base"
                 placeholder="Customer or company name"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="received-by" className="block text-sm font-bold text-neutral-700">
+                Received By *
+              </label>
+              <input
+                type="text"
+                id="received-by"
+                required
+                value={receivedBy}
+                onChange={(e) => setReceivedBy(e.target.value)}
+                className="mt-1.5 block w-full border border-neutral-300 rounded-lg p-3 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900 text-base"
+                placeholder="Receiver's name"
               />
             </div>
 

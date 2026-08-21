@@ -24,6 +24,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -187,6 +188,41 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     }
   };
 
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${name}"? This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
+    setDeleting(true);
+    try {
+      // 1. Delete product image from storage if it exists
+      if (existingImagePath) {
+        await supabase.storage.from('product-images').remove([existingImagePath]);
+      }
+
+      // 2. Delete product record from table
+      const { error } = await supabase.from('products').delete().eq('id', id);
+
+      if (error) {
+        // FK constraint violation code in Postgres
+        if (error.code === '23503') {
+          throw new Error('This product cannot be deleted because it has existing sale records. Adjust or delete its sales history first.');
+        }
+        throw error;
+      }
+
+      toast.success('Product deleted successfully');
+      router.refresh();
+      router.push('/admin');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete product');
+      console.error(err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 py-8 space-y-6 animate-pulse">
@@ -337,26 +373,42 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          <div className="pt-4 border-t border-neutral-100 flex items-center justify-end gap-3">
-            <Link
-              href="/admin"
-              className="inline-flex items-center justify-center px-5 py-3 border border-neutral-300 rounded-xl text-base font-semibold text-neutral-700 bg-white hover:bg-neutral-50 transition-colors cursor-pointer min-h-[48px]"
-            >
-              Cancel
-            </Link>
+          <div className="pt-4 border-t border-neutral-100 flex items-center justify-between gap-3 flex-wrap">
             <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center justify-center px-5 py-3 border border-transparent rounded-xl text-base font-semibold text-white bg-neutral-900 hover:bg-neutral-850 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px]"
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting || saving}
+              className="inline-flex items-center justify-center px-4 py-3 border border-red-200 rounded-xl text-base font-semibold text-red-650 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-colors cursor-pointer min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? (
+              {deleting ? (
                 <>
-                  <Loader2 className="animate-spin mr-2 h-5 w-5" /> Saving...
+                  <Loader2 className="animate-spin mr-2 h-5 w-5" /> Deleting...
                 </>
               ) : (
-                'Save Changes'
+                'Delete Product'
               )}
             </button>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/admin"
+                className="inline-flex items-center justify-center px-5 py-3 border border-neutral-300 rounded-xl text-base font-semibold text-neutral-700 bg-white hover:bg-neutral-50 transition-colors cursor-pointer min-h-[48px]"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={saving || deleting}
+                className="inline-flex items-center justify-center px-5 py-3 border border-transparent rounded-xl text-base font-semibold text-white bg-neutral-900 hover:bg-neutral-850 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px]"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2 h-5 w-5" /> Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>
