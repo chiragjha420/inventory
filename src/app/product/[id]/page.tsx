@@ -14,6 +14,7 @@ interface Product {
   image_url: string | null;
   unit_type: 'kg' | 'pieces' | 'box' | 'bag' | 'bundle' | 'set';
   current_quantity: number;
+  tags?: string[];
 }
 
 interface SaleItemWithSale {
@@ -43,7 +44,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         // Fetch Product Details
         const { data: prodData, error: prodError } = await supabase
           .from('products')
-          .select('id, name, category, image_url, unit_type, current_quantity')
+          .select('id, name, category, image_url, unit_type, current_quantity, tags')
           .eq('id', id)
           .single();
 
@@ -172,6 +173,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 leading-tight mt-1">
                 {product.name}
               </h1>
+              {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2.5">
+                  {product.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-block bg-neutral-100 text-neutral-700 text-xs font-semibold px-2.5 py-1 rounded-lg border border-neutral-200"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="bg-neutral-50 border border-neutral-100 rounded-xl p-4 sm:p-5">

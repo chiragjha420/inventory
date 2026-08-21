@@ -15,6 +15,23 @@ export default function NewProductPage() {
   const [unitType, setUnitType] = useState<'kg' | 'pieces' | 'box' | 'bag' | 'bundle' | 'set'>('pieces');
   const [startingQuantity, setStartingQuantity] = useState('0');
   const [lowStockThreshold, setLowStockThreshold] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = tagInput.trim().replace(/,/g, '');
+      if (val && !tags.includes(val)) {
+        setTags([...tags, val]);
+      }
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (indexToRemove: number) => {
+    setTags(tags.filter((_, i) => i !== indexToRemove));
+  };
   
   const [imageFile, setImageFile] = useState<Blob | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -138,6 +155,7 @@ export default function NewProductPage() {
           unit_type: unitType,
           current_quantity: qty,
           low_stock_threshold: threshold,
+          tags: tags,
         });
 
       if (insertError) {
@@ -305,6 +323,40 @@ export default function NewProductPage() {
                 className="mt-1.5 block w-full border border-neutral-350 rounded-lg p-3 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900 text-base"
                 placeholder="E.g., 10"
               />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label htmlFor="prod-tags" className="block text-sm font-bold text-neutral-700">
+                Tags / Keywords (Optional)
+              </label>
+              <input
+                type="text"
+                id="prod-tags"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagKeyDown}
+                className="mt-1.5 block w-full border border-neutral-350 rounded-lg p-3 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900 text-base"
+                placeholder="Type tag and press Enter or Comma (e.g. premium, grains)"
+              />
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tags.map((tag, index) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-neutral-100 text-neutral-855 border border-neutral-200"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(index)}
+                        className="ml-1.5 inline-flex items-center justify-center p-0.5 rounded-full text-neutral-400 hover:bg-neutral-250 hover:text-neutral-600 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

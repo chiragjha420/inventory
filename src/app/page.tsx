@@ -16,6 +16,7 @@ interface Product {
   unit_type: 'kg' | 'pieces' | 'box' | 'bag' | 'bundle' | 'set';
   current_quantity: number;
   low_stock_threshold: number | null;
+  tags?: string[];
 }
 
 export default function PublicHomepage() {
@@ -30,7 +31,7 @@ export default function PublicHomepage() {
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('id, name, category, image_url, unit_type, current_quantity, low_stock_threshold')
+          .select('id, name, category, image_url, unit_type, current_quantity, low_stock_threshold, tags')
           .order('name', { ascending: true });
 
         if (error) {
@@ -57,7 +58,7 @@ export default function PublicHomepage() {
     }
 
     const fuse = new Fuse(products, {
-      keys: ['name', 'category'],
+      keys: ['name', 'category', 'tags'],
       threshold: 0.3,
     });
 
@@ -180,6 +181,18 @@ export default function PublicHomepage() {
                       <h3 className="font-bold text-neutral-900 group-hover:text-black text-base line-clamp-2 leading-tight">
                         {product.name}
                       </h3>
+                      {product.tags && product.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {product.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-block bg-neutral-100 text-neutral-600 text-[10px] font-semibold px-2 py-0.5 rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-4 flex items-baseline justify-between border-t border-neutral-100 pt-3">

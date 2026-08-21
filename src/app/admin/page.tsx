@@ -17,6 +17,7 @@ interface Product {
   unit_type: 'kg' | 'pieces' | 'box' | 'bag' | 'bundle' | 'set';
   current_quantity: number;
   low_stock_threshold: number | null;
+  tags?: string[];
 }
 
 export default function AdminDashboard() {
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('id, name, category, image_url, unit_type, current_quantity, low_stock_threshold')
+          .select('id, name, category, image_url, unit_type, current_quantity, low_stock_threshold, tags')
           .order('name', { ascending: true });
 
         if (error) {
@@ -59,7 +60,7 @@ export default function AdminDashboard() {
     }
 
     const fuse = new Fuse(products, {
-      keys: ['name', 'category'],
+      keys: ['name', 'category', 'tags'],
       threshold: 0.3,
     });
 

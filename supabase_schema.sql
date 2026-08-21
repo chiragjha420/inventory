@@ -12,6 +12,7 @@ create table if not exists products (
   unit_type text not null constraint check_unit_type check (unit_type in ('kg', 'pieces', 'box', 'bag', 'bundle', 'set')),
   current_quantity numeric not null default 0 constraint check_current_quantity_non_negative check (current_quantity >= 0),
   low_stock_threshold numeric constraint check_low_stock_threshold_non_negative check (low_stock_threshold >= 0),
+  tags text[] not null default '{}'::text[],
   created_at timestamp with time zone default now() not null,
   updated_at timestamp with time zone default now() not null
 );
