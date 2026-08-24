@@ -75,15 +75,14 @@ export default function PublicHomepage() {
   };
 
   const downloadCSV = () => {
-    const headers = ['Product Image', 'Product Name', 'QTY Type', 'Available Pieces'];
+    const headers = ['Product Name', 'QTY Type', 'Available Pieces'];
     
     const rows = products.map((product) => {
-      const imgUrl = getImageUrl(product.image_url) || 'No Image';
       const nameEscaped = `"${product.name.replace(/"/g, '""')}"`;
       const qtyType = product.unit_type;
       const qty = product.current_quantity;
       
-      return [imgUrl, nameEscaped, qtyType, qty].join(',');
+      return [nameEscaped, qtyType, qty].join(',');
     });
     
     const csvContent = [headers.join(','), ...rows].join('\n');
