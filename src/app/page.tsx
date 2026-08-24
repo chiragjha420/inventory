@@ -24,6 +24,9 @@ export default function PublicHomepage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStockFilter, setSelectedStockFilter] = useState<'all' | 'out_of_stock' | 'low_stock' | 'in_stock'>('all');
+  const [selectedPhotoFilter, setSelectedPhotoFilter] = useState<'all' | 'with_photo' | 'without_photo'>('all');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -51,21 +54,47 @@ export default function PublicHomepage() {
     fetchProducts();
   }, [supabase]);
 
-  // Handle Fuse.js Search
+  // Handle Search and Filters
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults(products);
-      return;
+    let filtered = [...products];
+
+    // 1. Apply Search Query
+    if (searchQuery.trim()) {
+      const fuse = new Fuse(filtered, {
+        keys: ['name', 'category', 'tags'],
+        threshold: 0.3,
+      });
+      filtered = fuse.search(searchQuery).map((res) => res.item);
     }
 
-    const fuse = new Fuse(products, {
-      keys: ['name', 'category', 'tags'],
-      threshold: 0.3,
-    });
+    // 2. Apply Stock Filter
+    if (selectedStockFilter === 'out_of_stock') {
+      filtered = filtered.filter(p => Number(p.current_quantity) === 0);
+    } else if (selectedStockFilter === 'low_stock') {
+      filtered = filtered.filter(p => p.low_stock_threshold !== null && Number(p.current_quantity) <= Number(p.low_stock_threshold));
+    } else if (selectedStockFilter === 'in_stock') {
+      filtered = filtered.filter(p => Number(p.current_quantity) > 0);
+    }
 
-    const results = fuse.search(searchQuery).map((res) => res.item);
-    setSearchResults(results);
-  }, [searchQuery, products]);
+    // 3. Apply Photo Filter
+    if (selectedPhotoFilter === 'with_photo') {
+      filtered = filtered.filter(p => p.image_url !== null && p.image_url !== '');
+    } else if (selectedPhotoFilter === 'without_photo') {
+      filtered = filtered.filter(p => p.image_url === null || p.image_url === '');
+    }
+
+    // 4. Apply Category Filter
+    if (selectedCategoryFilter !== 'all') {
+      filtered = filtered.filter(p => p.category === selectedCategoryFilter);
+    }
+
+    setSearchResults(filtered);
+  }, [searchQuery, products, selectedStockFilter, selectedPhotoFilter, selectedCategoryFilter]);
+
+  // Extract unique categories dynamically
+  const categories = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean))
+  ) as string[];
 
   // Helper to get public URL of product image
   const getImageUrl = (path: string | null) => {
@@ -109,7 +138,7 @@ export default function PublicHomepage() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
         {/* Sticky Search bar on Homepage */}
-        <div className="sticky top-[65px] z-20 bg-neutral-50 py-4 mb-6">
+        <div className="sticky top-[65px] z-20 bg-neutral-50 py-4 mb-6 space-y-3">
           <div className="flex items-center gap-3 w-full max-w-2xl mx-auto">
             <div className="relative flex-1 rounded-xl shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -133,6 +162,48 @@ export default function PublicHomepage() {
             >
               <Download className="h-5 w-5" />
             </button>
+          </div>
+
+          {/* Filters Row */}
+          <div className="grid grid-cols-3 gap-2 w-full max-w-2xl mx-auto bg-white p-3 rounded-xl border border-neutral-200/80 shadow-sm">
+            <div>
+              <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Stock</label>
+              <select
+                value={selectedStockFilter}
+                onChange={(e: any) => setSelectedStockFilter(e.target.value)}
+                className="block w-full border border-neutral-200 rounded-lg p-1.5 bg-neutral-50 text-neutral-800 focus:outline-none text-xs cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="in_stock">In Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
+                <option value="low_stock">Low Stock</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Photos</label>
+              <select
+                value={selectedPhotoFilter}
+                onChange={(e: any) => setSelectedPhotoFilter(e.target.value)}
+                className="block w-full border border-neutral-200 rounded-lg p-1.5 bg-neutral-50 text-neutral-800 focus:outline-none text-xs cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="with_photo">With Photo</option>
+                <option value="without_photo">No Photo</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Category</label>
+              <select
+                value={selectedCategoryFilter}
+                onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                className="block w-full border border-neutral-200 rounded-lg p-1.5 bg-neutral-50 text-neutral-800 focus:outline-none text-xs cursor-pointer"
+              >
+                <option value="all">All</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
