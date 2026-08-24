@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import Fuse from 'fuse.js';
 import { ArrowLeft, Search, Check, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { syncToGoogleSheets } from '@/lib/sheets';
 
 interface Product {
   id: string;
@@ -161,6 +162,9 @@ function ReceiveStockContent() {
       if (error) {
         throw error;
       }
+
+      // Sync to Google Sheets
+      await syncToGoogleSheets();
 
       toast.success('Stock received and updated successfully!');
       router.refresh();

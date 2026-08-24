@@ -9,6 +9,7 @@ import Fuse from 'fuse.js';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Search, Plus, Trash2, Check, Package, Loader2, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { syncToGoogleSheets } from '@/lib/sheets';
 
 interface Product {
   id: string;
@@ -206,6 +207,9 @@ function LogSaleContent() {
       if (error) {
         throw error;
       }
+
+      // Sync to Google Sheets
+      await syncToGoogleSheets();
 
       // Confetti WOW factor!
       confetti({

@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/utils/image';
 import { ArrowLeft, Upload, Package, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { syncToGoogleSheets } from '@/lib/sheets';
 
 export default function NewProductPage() {
   const [name, setName] = useState('');
@@ -161,6 +162,9 @@ export default function NewProductPage() {
       if (insertError) {
         throw insertError;
       }
+
+      // Sync to Google Sheets
+      await syncToGoogleSheets();
 
       toast.success('Product created successfully!');
       router.refresh();

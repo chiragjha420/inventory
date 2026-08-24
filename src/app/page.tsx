@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import Fuse from 'fuse.js';
-import * as XLSX from 'xlsx';
 import { Search, Package, ArrowRight, AlertTriangle, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { syncToGoogleSheets } from '@/lib/sheets';
 
 interface Product {
   id: string;
@@ -75,28 +75,17 @@ export default function PublicHomepage() {
     return data.publicUrl;
   };
 
-  const downloadExcel = () => {
-    // 1. Map data for the sheet
-    const data = products.map((product) => ({
-      'Product Name': product.name,
-      'QTY Type': product.unit_type,
-      'Available Pieces': product.current_quantity
-    }));
-
-    // 2. Generate worksheet
-    const worksheet = XLSX.utils.json_to_sheet(data);
-
-    // 3. Set custom column widths (wch stands for character width)
-    worksheet['!cols'] = [
-      { wch: 40 }, // Product Name (wide column to avoid clipping)
-      { wch: 15 }, // QTY Type
-      { wch: 22 }  // Available Pieces
-    ];
-
-    // 4. Create workbook and write file
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory');
-    XLSX.writeFile(workbook, `products_inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
+  const openGoogleSheets = async () => {
+    const toastId = toast.loading('Syncing latest inventory to Google Sheets...');
+    try {
+      await syncToGoogleSheets();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      toast.dismiss(toastId);
+    }
+    const url = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL || 'https://docs.google.com/spreadsheets/d/14QySZSX5IUrUL8IUe574kmDVL9fOaLHOzjz7dvCE1vo/edit?usp=sharing';
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -138,8 +127,8 @@ export default function PublicHomepage() {
             </div>
             <button
               type="button"
-              onClick={downloadExcel}
-              title="Download Excel Sheet"
+              onClick={openGoogleSheets}
+              title="Open Google Sheet"
               className="inline-flex items-center justify-center p-3.5 border border-neutral-300 rounded-xl bg-white text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors shadow-sm cursor-pointer h-[50px] w-[50px] shrink-0"
             >
               <Download className="h-5 w-5" />

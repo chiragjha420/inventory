@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/utils/image';
 import { ArrowLeft, Upload, Package, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { syncToGoogleSheets } from '@/lib/sheets';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -196,6 +197,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         throw updateError;
       }
 
+      // Sync to Google Sheets
+      await syncToGoogleSheets();
+
       toast.success('Product updated successfully!');
       router.refresh();
       router.push('/admin');
@@ -230,6 +234,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         }
         throw error;
       }
+
+      // Sync to Google Sheets
+      await syncToGoogleSheets();
 
       toast.success('Product deleted successfully');
       router.refresh();
