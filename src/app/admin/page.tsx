@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Fuse from 'fuse.js';
+import * as XLSX from 'xlsx';
 import { Search, Package, Plus, LogOut, ArrowUpRight, ArrowDownRight, Edit3, Eye, AlertTriangle, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -89,73 +90,27 @@ export default function AdminDashboard() {
   };
 
   const downloadExcel = () => {
-    let html = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
-        <!--[if gte mso 9]>
-        <xml>
-          <x:ExcelWorkbook>
-            <x:ExcelWorksheets>
-              <x:ExcelWorksheet>
-                <x:Name>Inventory</x:Name>
-                <x:WorksheetOptions>
-                  <x:DisplayGridlines/>
-                </x:WorksheetOptions>
-              </x:ExcelWorksheet>
-            </x:ExcelWorksheets>
-          </x:ExcelWorkbook>
-        </xml>
-        <![endif]-->
-        <style>
-          table { border-collapse: collapse; }
-          th { font-weight: bold; background-color: #f3f4f6; border: 1px solid #d1d5db; text-align: left; padding: 10px; font-family: sans-serif; font-size: 14px; }
-          td { border: 1px solid #e5e7eb; text-align: left; padding: 10px; font-family: sans-serif; font-size: 14px; }
-        </style>
-      </head>
-      <body>
-        <table>
-          <colgroup>
-            <col width="320" />
-            <col width="150" />
-            <col width="180" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>QTY Type</th>
-              <th>Available Pieces</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
+    // 1. Map data for the sheet
+    const data = products.map((product) => ({
+      'Product Name': product.name,
+      'QTY Type': product.unit_type,
+      'Available Pieces': product.current_quantity
+    }));
 
-    products.forEach((product) => {
-      html += `
-        <tr>
-          <td>${product.name}</td>
-          <td>${product.unit_type}</td>
-          <td>${product.current_quantity}</td>
-        </tr>
-      `;
-    });
+    // 2. Generate worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data);
 
-    html += `
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `;
+    // 3. Set custom column widths (wch stands for character width)
+    worksheet['!cols'] = [
+      { wch: 40 }, // Product Name (wide column to avoid clipping)
+      { wch: 15 }, // QTY Type
+      { wch: 22 }  // Available Pieces
+    ];
 
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `products_inventory_${new Date().toISOString().split('T')[0]}.xls`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 4. Create workbook and write file
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory');
+    XLSX.writeFile(workbook, `products_inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   return (
