@@ -74,24 +74,70 @@ export default function PublicHomepage() {
     return data.publicUrl;
   };
 
-  const downloadCSV = () => {
-    const headers = ['Product Name', 'QTY Type', 'Available Pieces'];
-    
-    const rows = products.map((product) => {
-      const nameEscaped = `"${product.name.replace(/"/g, '""')}"`;
-      const qtyType = product.unit_type;
-      const qty = product.current_quantity;
-      
-      return [nameEscaped, qtyType, qty].join(',');
+  const downloadExcel = () => {
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Inventory</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                </WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          table { border-collapse: collapse; }
+          th { font-weight: bold; background-color: #f3f4f6; border: 1px solid #d1d5db; text-align: left; padding: 10px; font-family: sans-serif; font-size: 14px; }
+          td { border: 1px solid #e5e7eb; text-align: left; padding: 10px; font-family: sans-serif; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <colgroup>
+            <col width="320" />
+            <col width="150" />
+            <col width="180" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>QTY Type</th>
+              <th>Available Pieces</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    products.forEach((product) => {
+      html += `
+        <tr>
+          <td>${product.name}</td>
+          <td>${product.unit_type}</td>
+          <td>${product.current_quantity}</td>
+        </tr>
+      `;
     });
-    
-    const csvContent = [headers.join(','), ...rows].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    html += `
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `products_inventory_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `products_inventory_${new Date().toISOString().split('T')[0]}.xls`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -137,7 +183,7 @@ export default function PublicHomepage() {
             </div>
             <button
               type="button"
-              onClick={downloadCSV}
+              onClick={downloadExcel}
               title="Download Excel Sheet"
               className="inline-flex items-center justify-center p-3.5 border border-neutral-300 rounded-xl bg-white text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors shadow-sm cursor-pointer h-[50px] w-[50px] shrink-0"
             >
