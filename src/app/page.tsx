@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import Fuse from 'fuse.js';
-import { Search, Package, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Search, Package, ArrowRight, AlertTriangle, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Product {
@@ -74,6 +74,31 @@ export default function PublicHomepage() {
     return data.publicUrl;
   };
 
+  const downloadCSV = () => {
+    const headers = ['Product Image', 'Product Name', 'QTY Type', 'Available Pieces'];
+    
+    const rows = products.map((product) => {
+      const imgUrl = getImageUrl(product.image_url) || 'No Image';
+      const nameEscaped = `"${product.name.replace(/"/g, '""')}"`;
+      const qtyType = product.unit_type;
+      const qty = product.current_quantity;
+      
+      return [imgUrl, nameEscaped, qtyType, qty].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `products_inventory_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex-1 flex flex-col">
       {/* Navigation Top Bar */}
@@ -96,19 +121,29 @@ export default function PublicHomepage() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
         {/* Sticky Search bar on Homepage */}
         <div className="sticky top-[65px] z-20 bg-neutral-50 py-4 mb-6">
-          <div className="relative rounded-xl shadow-sm w-full max-w-2xl mx-auto">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-neutral-400" aria-hidden="true" />
+          <div className="flex items-center gap-3 w-full max-w-2xl mx-auto">
+            <div className="relative flex-1 rounded-xl shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-neutral-400" aria-hidden="true" />
+              </div>
+              <input
+                type="text"
+                name="search"
+                id="search-input"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-4 py-3.5 border border-neutral-300 rounded-xl bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900 text-base"
+                placeholder="Search products or categories..."
+              />
             </div>
-            <input
-              type="text"
-              name="search"
-              id="search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-4 py-3.5 border border-neutral-300 rounded-xl bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900 text-base"
-              placeholder="Search products or categories..."
-            />
+            <button
+              type="button"
+              onClick={downloadCSV}
+              title="Download Excel Sheet"
+              className="inline-flex items-center justify-center p-3.5 border border-neutral-300 rounded-xl bg-white text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors shadow-sm cursor-pointer h-[50px] w-[50px] shrink-0"
+            >
+              <Download className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
