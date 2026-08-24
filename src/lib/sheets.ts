@@ -22,23 +22,18 @@ export async function syncToGoogleSheets() {
     }
 
     // Trigger post request to Google Apps Script Web App
-    const response = await fetch(scriptUrl, {
+    // We use mode: 'no-cors' and text/plain content-type to prevent browser CORS preflight blocks.
+    await fetch(scriptUrl, {
       method: 'POST',
+      mode: 'no-cors',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain',
       },
       body: JSON.stringify({
         action: 'sync_all',
         products: products || []
-      }),
-      // Keep it non-blocking
-      mode: 'cors'
+      })
     });
-
-    const result = await response.json();
-    if (result.status !== 'success') {
-      console.error('Google Sheets Web App responded with error:', result.message);
-    }
   } catch (err) {
     console.error('Failed to sync database to Google Sheets:', err);
   }
